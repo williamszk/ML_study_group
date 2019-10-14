@@ -1,0 +1,457 @@
+
+
+
+
+
+
+\documentclass{beamer}
+\renewcommand{\baselinestretch}{1.2}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+
+\usepackage{subfig}
+\usefonttheme{serif}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+%\usepackage{bbm}
+%\usepackage{float}
+%\usepackage{array}
+\usepackage{geometry}
+\usepackage{amsfonts}
+\usepackage{microtype}
+\usepackage{accents}
+%\usepackage{relsize}
+\usepackage{bm}
+\usepackage{caption}
+
+\usepackage{lscape}
+\usepackage{pdflscape}
+\usepackage{rotating}
+\usepackage{grffile}
+\usepackage{url}
+\usepackage{adjustbox}
+\usepackage{multirow}
+\usepackage{tabularx, blkarray}
+\usepackage{eqparbox} 
+\usepackage{comment}
+\newcommand{\Lagr}{\mathcal{L}}
+\usepackage{listings}
+
+
+\usepackage{amssymb}
+\newcommand{\E}{\mathrm{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\renewcommand{\P }{\mathrm{P }}
+\renewcommand{\ln }{\mathrm{ln }}
+
+\usepackage{natbib}
+\bibliographystyle{chicago}
+
+
+
+
+
+ 
+ 
+
+\title{ An Introduction to \\ Tree-Based Methods}
+\author{\small William  Suzuki}
+\institute{FEARP-USP}
+\date{2019}
+ 
+ 
+\begin{document}
+ 
+\frame{\titlepage}
+ 
+
+
+
+\begin{frame}
+\frametitle{Regression Trees}
+Types of methods: Regression Trees, Bagging, Random Forests, Boosting.
+\\~\\
+Regression Trees are simple and useful for interpretation. 
+
+Problem: poor prediction. 
+Typically worse than: LASSO, Ridge, Splines, Generalized Additive Models (GAM).
+\\~\\
+\textit{Bagging, Random Forests, Boosting}: combine a large number of trees. Improve prediction accuracy. 
+
+Problem: at the expense of some loss in interpretation.
+\end{frame} 
+
+
+
+
+
+\begin{frame}
+\frametitle{Regression Trees}
+Source: \textit{Gareth James, Daniela Witten, Trevor Hastie, Robert Tibshirani;} An Introduction to Statistical Learning: with Applications in R
+\\~\\
+
+Motivation: Predicting Baseball Players’ Salaries Using Regression Trees
+\\~\\
+$ y= \{ \text{log salary of a baseball player}  \} $
+
+$ X = \{ \text{years playing;  last year's number of hits} \}  $
+\end{frame} 
+
+\begin{frame}
+\frametitle{Regression Trees}
+\begin{figure}[H]
+\caption{\texttt{Hitters} regression tree example}
+\includegraphics[width=5cm,height=5cm]{"hitters1".JPG} 
+\end{figure}
+
+$ y= \{ \texttt{Salary}  \} $
+
+$ X = \{ \texttt{Years, Hits} \}  $
+\end{frame} 
+
+
+
+\begin{frame}
+\frametitle{Methodology}
+
+We define the following regions for the covariates $X$:
+
+$ R_1 = \{X| \texttt{Years<4.5}  \}$ 
+
+$ R_2 = \{X| \texttt{Years>=4.5, Hits<117.5} \}$  
+
+$ R_3 = \{X| \texttt{Years>=4.5, Hits>=117.5} \} $
+\\~\\
+$ R_1, R_2, R_3 $ are called \textit{terminal nodes} or \textit{leaves}.
+\\~\\
+The points along the tree where the predictor space is split are referred to as \textit{internal nodes}. 
+\end{frame} 
+
+
+
+
+\begin{frame}
+\frametitle{Regression Trees}
+\begin{figure}[H]
+\caption{\texttt{Hitters} three-region partition}
+\includegraphics[width=6cm,height=5cm]{"hitter2".JPG} 
+\end{figure}
+\end{frame} 
+
+
+
+
+\begin{frame}
+\frametitle{Regression Trees}
+
+Interpretation: 
+\\~\\
+\texttt{Years} is the most important factor in determining  \texttt{Salary}. Less experience means lower salary.
+
+\texttt{Hits} are not model relevant for lesser experienced players. 
+\\~\\
+\texttt{Hits} are model relevant for more experienced players (5+ years). 
+
+More \texttt{Hits} means higher \texttt{Salary}.
+\\~\\
+Good: easy to interpret, and nice graphical representation.
+
+Problem: model too simple.
+
+\end{frame} 
+
+
+
+\begin{frame}
+\frametitle{Regression Trees}
+\begin{figure}[H]
+\caption{Visualize Regression Tree}
+\includegraphics[width=8.5cm,height=7cm]{"tree1".JPG} 
+\end{figure}
+\end{frame} 
+
+
+
+
+
+
+
+\begin{frame}
+\frametitle{Regression Trees}
+
+Algorithm steps:
+\\~\\
+For any $j$ and $s$, we define the pair of half-planes:
+$$ R_1 (j,s) = \{ X|X_j < s \}  \text{ and }  R_2 (j,s) = \{ X|X_j \geq s \}  $$
+we seek the value of $j$ and $s$ that minimize the equation
+ $$ \min_{j,s}   \sum\limits_{ i \text{ in } R_1 } ( y_i - y_{R_1}  )^2 + \sum\limits_{ i \text{ in } R_2 } ( y_i - y_{R_2}  )^2  $$
+
+
+
+\end{frame} 
+
+
+
+
+
+
+\begin{frame}
+\frametitle{Regression Trees}
+
+\textbf{Tree Pruning} 
+\\~\\
+Problem: The algorithm goes till a stop criterion, the resulting tree might be too complex. Overfitting.
+\\~\\
+Strategy: grow a very large tree $T_0$ and then prune $T_0$ in order to obtain a \textit{subtree}.
+
+\end{frame} 
+
+
+
+
+\begin{frame}
+\frametitle{Regression Trees}
+
+\textbf{Weakest Link Pruning} 
+\\~\\
+$ \alpha $ is a nonnegative tuning parameter.
+
+
+For each subtree $T  \subset T_0 $
+$$ \sum\limits_{m=1}^{|T|}  \left[ \sum\limits_{i \text{ in } R_m  } ( y_i - y_{R_m}  )^2   \right]  + \alpha |T| $$
+$|T|$ number of leafs in the tree.
+
+Use cross-validation to select $ \alpha $.
+
+
+\end{frame} 
+
+
+
+\begin{frame}
+\frametitle{Regression Trees}
+\begin{figure}[H]
+\caption{Unpruned Regression Tree for \texttt{Hitters}}
+\includegraphics[width=8.5cm,height=7cm]{"tree2".JPG} 
+\end{figure}
+\end{frame} 
+
+
+\begin{frame}
+\frametitle{Regression Trees}
+\begin{figure}[H]
+\caption{MSE graphs for \texttt{Hitters}}
+\includegraphics[width=9.5cm,height=7cm]{"graph1".JPG} 
+\end{figure}
+\end{frame} 
+
+
+\begin{frame}
+\frametitle{Classification Trees}
+
+A classification tree is very similar to a regression tree, except that it is tree used to predict a qualitative response rather than a quantitative one. 
+\\~\\
+In classification trees we predict that each observation belongs to the most commonly occurring class of training observations in the region to which it belongs.
+$$ \forall m \quad\quad\quad\quad 	G_m = \sum\limits_{k=1}^{K} p_k (1-p_k)  \quad\quad\quad\quad  D_m =  \sum\limits_{k=1}^{K} p_k \log p_k $$
+
+\end{frame} 
+
+
+
+\begin{frame}
+\frametitle{Regression Trees}
+
+\begin{itemize}
+\item Trees are very easy to explain to people.
+\item Trees can be displayed graphically, and are easily interpreted.
+\item Trees can easily handle qualitative predictors.
+\item (bad) Comparatively low predictive power.
+\end{itemize}
+Next: Bagging, Random Forests, Boosting. 
+\end{frame} 
+
+
+
+\begin{frame}
+\frametitle{Bagging}
+
+
+\textit{Bootstrap aggregation} $=$ \textit{bagging}  is a general-purpose procedure for reducing the bagging variance of a statistical learning method.
+\\~\\
+Bagging typically results in improved accuracy over prediction using a single tree. Unfortunately, however, it can be difficult to interpret the resulting model.
+\\~\\
+The bagging estimator is:
+$$ \hat{f}(x) = \frac{1}{B} \sum\limits_{b=1}^{B} \hat{f}_b(x)  $$
+
+\end{frame} 
+
+
+
+\begin{frame}
+\frametitle{Out-of-Bag}
+
+out-of-bag (OOB) 
+
+One can show that on average, each bagged tree makes use of around two-thirds of the observations. 
+
+This will yield around B/3 predictions for the ith observation. 
+
+OOB MSE (for a regression problem) or classification error (for a
+classification problem) 
+
+It can be shown that with B sufficiently large, OOB error is virtually equivalent to leave-one-out cross-validation error.
+
+
+\end{frame} 
+
+
+\begin{frame}
+\frametitle{Methodology}
+
+
+Random forests provide an improvement over bagged trees by way of a
+random
+forest small tweak that decorrelates the trees. As in bagging, we build a number
+of decision trees on bootstrapped training samples.
+
+each time a split in a tree is considered, a random sample of $m$ predictors is chosen as split candidates from the full set of $p$ predictors.
+
+$$ m  \approx \sqrt{p} $$
+
+\end{frame} 
+
+
+
+\begin{frame}
+\frametitle{Methodology}
+
+
+This may sound crazy, but it has a clever rationale. Suppose
+that there is one very strong predictor in the data set, along with a num-
+ber of other moderately strong predictors. Then in the collection of bagged
+trees, most or all of the trees will use this strong predictor in the top split.
+Consequently, all of the bagged trees will look quite similar to each other.Hence the predictions from the bagged trees will be highly correlated.Un-
+fortunately, averaging many highly correlated quantities does not lead to
+as large of a reduction in variance as averaging many uncorrelated quanti-
+ties.
+\\~\\
+We can think of this process as decorrelating
+the trees, thereby making the average of the resulting trees less variable
+and hence more reliable
+\\~\\
+if $m=p$ then random forest is the same as bagging
+
+
+
+\end{frame} 
+
+
+\begin{frame}
+\frametitle{Regression Trees}
+\begin{figure}[H]
+\caption{Classification error graphs for \texttt{Heart}}
+\includegraphics[width=9.5cm,height=7cm]{"bag1".JPG} 
+\end{figure}
+\end{frame} 
+
+
+
+\begin{frame}
+\frametitle{Regression Trees}
+\begin{figure}[H]
+\caption{Classification error graphs for \texttt{Heart}}
+\includegraphics[width=9.5cm,height=7cm]{"genes1".JPG} 
+\end{figure}
+\end{frame} 
+
+\begin{frame}
+\frametitle{Boosting}
+
+Algorithm steps: Boosting for Regression Trees
+
+\begin{enumerate}
+\item  Set $f(x) = 0$ and $r = y$ for all $i$ in the training set.
+\item For $b = 1,2,...,B$, repeat: 
+\begin{enumerate}
+\item Fit a tree $f_b$ with $d$ splits ($d+1$ leafs) to the training data $(X,r)$.
+\item Update $f$ by adding in a shrunken version of the new tree: 
+$$  f(x) \leftarrow f(x) + \lambda f_b(x) $$
+\item Update the residuals,
+$$ r \leftarrow r  - \lambda f_b (x) $$
+\end{enumerate}
+\item  Output the boosted model, 
+$$ f(x) = \sum\limits_{b=1}^{B}  \lambda f_b (x) $$
+\end{enumerate}
+
+\end{frame} 
+
+
+
+\begin{frame}
+\frametitle{Boosting}
+
+Usually $\lambda = 0.01 \text{ or } 0.001$
+
+
+
+
+
+\end{frame} 
+
+
+
+
+
+\begin{frame}
+\frametitle{Methodology}
+
+
+
+
+
+
+
+\end{frame} 
+
+
+
+
+
+
+
+
+
+\begin{frame}
+\frametitle{References}
+\begin{tiny}
+\bibliography{references}
+\end{tiny}
+\end{frame} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
+
+ 
